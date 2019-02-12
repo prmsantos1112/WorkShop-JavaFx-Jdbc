@@ -9,6 +9,7 @@ import application.Main;
 import graficUserInterFace.Listeners.DataChangeListener;
 import graficUserInterFace.Util.Alerts;
 import graficUserInterFace.Util.Utils;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,6 +19,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -39,6 +41,9 @@ public class DepartmentListController implements Initializable, DataChangeListen
 
 	@FXML
 	private TableColumn<Department, String> tableColumnName;
+
+	@FXML
+	private TableColumn<Department, Department> tableColumnEDIT;
 
 	@FXML
 	private Button btNew;
@@ -78,6 +83,7 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		List<Department> list = deptoService.findAll();
 		observList = FXCollections.observableArrayList(list);
 		tableViewDepartment.setItems(observList);
+		initEditButtons();
 
 	}
 
@@ -86,20 +92,20 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 			Pane pane = loader.load();
-			
+
 			DepartmentFormController controller = loader.getController();
 			controller.setDepartment(object);
 			controller.setDepartmentService(new DepartmentService());
 			controller.subscribeDataChangeListener(this);
 			controller.updateFormData();
-			
+
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Enter Department Data");
 			dialogStage.setScene(new Scene(pane));
 			dialogStage.setResizable(false);
 			dialogStage.initOwner(parentStage);
 			dialogStage.initModality(Modality.WINDOW_MODAL);
-			dialogStage.showAndWait();			
+			dialogStage.showAndWait();
 
 		} catch (IOException e) {
 			Alerts.showAlert("IO Exception", "Error Loading View", e.getMessage(), AlertType.ERROR);
@@ -109,6 +115,27 @@ public class DepartmentListController implements Initializable, DataChangeListen
 	@Override
 	public void onDataChanged() {
 		updateTableView();
-		
+
+	}
+
+	private void initEditButtons() {
+		tableColumnEDIT.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
+		tableColumnEDIT.setCellFactory(param -> new TableCell<Department, Department>() {
+			private final Button button = new Button("edit");
+
+			@Override
+			protected void updateItem(Department objetiv, boolean empty) {
+				super.updateItem(objetiv, empty);
+
+				if (objetiv == null) {
+					setGraphic(null);
+					return;
+				}
+
+				setGraphic(button);
+				button.setOnAction(
+						event -> createDialogForm(objetiv, "/graficUserInterFace/DepartmentForm.fxml", Utils.currentStage(event)));
+			}
+		});
 	}
 }
