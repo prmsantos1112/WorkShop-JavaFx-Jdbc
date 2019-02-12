@@ -1,9 +1,12 @@
 package graficUserInterFace;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import dbase.DbException;
+import graficUserInterFace.Listeners.DataChangeListener;
 import graficUserInterFace.Util.Alerts;
 import graficUserInterFace.Util.Constraints;
 import graficUserInterFace.Util.Utils;
@@ -21,6 +24,7 @@ public class DepartmentFormController implements Initializable {
 	
 	private Department entity;	
 	private DepartmentService deptoService;
+	private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 	
 	@FXML
 	private TextField txtId;
@@ -45,6 +49,10 @@ public class DepartmentFormController implements Initializable {
 		this.deptoService = deptoService;
 	}
 	
+	public void subscribeDataChangeListener(DataChangeListener listeners) {
+		dataChangeListeners.add(listeners);
+		
+	}	
 	
 	@FXML
 	public void onBtSaveAction(ActionEvent events) {
@@ -57,6 +65,7 @@ public class DepartmentFormController implements Initializable {
 		try {
 			entity = getFormData();
 			deptoService.saveOrUpdate(entity);
+			notifyDataChangeListeners();
 			Utils.currentStage(events).close();
 			
 		} catch (DbException e) {
@@ -65,6 +74,13 @@ public class DepartmentFormController implements Initializable {
 		
 	}
 	
+	private void notifyDataChangeListeners() {
+		for (DataChangeListener listener : dataChangeListeners) {
+			listener.onDataChanged();
+		}
+		
+	}
+
 	private Department getFormData() {
 		Department object = new Department();
 		
