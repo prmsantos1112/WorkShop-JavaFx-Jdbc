@@ -23,4 +23,13 @@ public class DepartmentService {
 		return list;
 		*/
 	}
+	
+	public void saveOrUpdate(Department object) {
+		if (object.getId() == null) {
+			deptoDao.insert(object);
+		}
+		else {
+			deptoDao.update(object);
+		}
+	}
 }

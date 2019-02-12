@@ -3,17 +3,24 @@ package graficUserInterFace;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import dbase.DbException;
+import graficUserInterFace.Util.Alerts;
 import graficUserInterFace.Util.Constraints;
+import graficUserInterFace.Util.Utils;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.entities.Department;
+import model.services.DepartmentService;
 
 public class DepartmentFormController implements Initializable {
 	
 	private Department entity;	
+	private DepartmentService deptoService;
 	
 	@FXML
 	private TextField txtId;
@@ -34,15 +41,42 @@ public class DepartmentFormController implements Initializable {
 		this.entity = entity;
 	}
 	
-	
-	@FXML
-	public void onBtSaveAction() {
-		System.out.println("onBtSaveAction");
+	public void setDepartmentService (DepartmentService deptoService) {
+		this.deptoService = deptoService;
 	}
 	
+	
 	@FXML
-	public void onBtCancelAction() {
-		System.out.println("onBtCancelAction");
+	public void onBtSaveAction(ActionEvent events) {
+		if (entity == null) {
+			throw new IllegalStateException("Entity was null !!");
+		}
+		if (deptoService == null) {
+			throw new IllegalStateException("DeptoService was null !!");
+		}
+		try {
+			entity = getFormData();
+			deptoService.saveOrUpdate(entity);
+			Utils.currentStage(events).close();
+			
+		} catch (DbException e) {
+			Alerts.showAlert("Error Saving Object", null, e.getMessage(), AlertType.ERROR);
+		}
+		
+	}
+	
+	private Department getFormData() {
+		Department object = new Department();
+		
+		object.setId(Utils.tryParseToInt(txtId.getText()));
+		object.setName(txtName.getText());
+		
+		return object;
+	}
+
+	@FXML
+	public void onBtCancelAction(ActionEvent events) {
+		Utils.currentStage(events).close();
 	
 	}	
 
